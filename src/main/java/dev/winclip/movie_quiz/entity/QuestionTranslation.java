@@ -1,6 +1,5 @@
 package dev.winclip.movie_quiz.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,10 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,8 +17,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "answers")
-public class Answer {
+@Table(name = "question_translations")
+public class QuestionTranslation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,12 +28,9 @@ public class Answer {
 	@JoinColumn(name = "question_id", nullable = false)
 	private Question question;
 
-	@Column(name = "text", nullable = false, columnDefinition = "TEXT")
-	private String answerText;
+	@Column(nullable = false, length = 10)
+	private String locale;
 
-	@Column(name = "correct", nullable = false)
-	private boolean correct;
-
-	@OneToMany(mappedBy = "answer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<AnswerTranslation> answerTranslations = new ArrayList<>();
+	@Column(name = "translation_text", nullable = false, columnDefinition = "TEXT")
+	private String translationText;
 }
