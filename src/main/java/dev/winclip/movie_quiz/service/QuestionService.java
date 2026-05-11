@@ -19,9 +19,4 @@ public class QuestionService {
 	public List<Question> findAllWithDetails() {
 		return questionRepository.findAllWithDetails();
 	}
-
-	@Transactional(readOnly = true)
-	public List<Question> findAllByCategoryWithDetails(Long categoryId) {
-		return questionRepository.findAllByCategoryIdWithDetails(categoryId);
-	}
 }
