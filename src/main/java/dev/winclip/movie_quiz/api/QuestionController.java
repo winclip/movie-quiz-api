@@ -2,11 +2,10 @@ package dev.winclip.movie_quiz.api;
 
 import dev.winclip.movie_quiz.api.dto.CreateQuestionRequest;
 import dev.winclip.movie_quiz.api.dto.CreatedQuestionResponse;
-import dev.winclip.movie_quiz.api.dto.QuestionResponse;
+import dev.winclip.movie_quiz.api.dto.QuestionsPageResponse;
 import dev.winclip.movie_quiz.i18n.SupportedLocales;
 import dev.winclip.movie_quiz.service.QuestionService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,13 +28,27 @@ public class QuestionController {
 	}
 
 	@GetMapping
-	public List<QuestionResponse> list(@RequestParam(defaultValue = "en") String locale) {
+	public QuestionsPageResponse list(
+			@RequestParam(defaultValue = "en") String locale,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) {
 		if (!SupportedLocales.ALL_SET.contains(locale)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported locale: " + locale);
 		}
-		return questionService.findAllWithDetails().stream()
+		if (page < 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid page: " + page);
+		}
+		if (size < 1 || size > 50) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid size: " + size);
+		}
+
+		var items = questionService.findPageWithDetails(page, size).stream()
 				.map(q -> questionDtoMapper.toResponse(q, locale))
 				.toList();
+		long totalItems = questionService.countQuestions();
+		int totalPages = (int) ((totalItems + size - 1) / size);
+		boolean hasNext = page + 1 < totalPages;
+		return new QuestionsPageResponse(items, page, size, totalItems, totalPages, hasNext);
 	}
 
 	@PostMapping

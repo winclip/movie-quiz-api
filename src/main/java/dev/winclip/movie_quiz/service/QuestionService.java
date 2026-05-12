@@ -10,6 +10,8 @@ import dev.winclip.movie_quiz.i18n.SupportedLocales;
 import dev.winclip.movie_quiz.repository.QuestionRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +28,35 @@ public class QuestionService {
 	@Transactional(readOnly = true)
 	public List<Question> findAllWithDetails() {
 		return questionRepository.findAllWithDetails();
+	}
+
+	@Transactional(readOnly = true)
+	public List<Question> findBatchWithDetails(Long cursor, int size) {
+		var pageable = PageRequest.of(0, size);
+		var ids = questionRepository.findNextIds(cursor, pageable);
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		var questions = questionRepository.findByIdInWithDetails(ids);
+		questions.sort(Comparator.comparing(Question::getId));
+		return questions;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Question> findPageWithDetails(int page, int size) {
+		var pageable = PageRequest.of(page, size);
+		var ids = questionRepository.findPageIds(pageable);
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		var questions = questionRepository.findByIdInWithDetails(ids);
+		questions.sort(Comparator.comparing(Question::getId));
+		return questions;
+	}
+
+	@Transactional(readOnly = true)
+	public long countQuestions() {
+		return questionRepository.count();
 	}
 
 	@Transactional
