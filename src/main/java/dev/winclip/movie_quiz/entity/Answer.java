@@ -16,6 +16,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @Setter
@@ -38,6 +39,7 @@ public class Answer {
 	@Column(name = "correct", nullable = false)
 	private boolean correct;
 
+	@BatchSize(size = 32)
 	@OneToMany(mappedBy = "answer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<AnswerTranslation> answerTranslations = new ArrayList<>();
 }

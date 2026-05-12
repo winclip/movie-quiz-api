@@ -9,7 +9,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
 	@Query("""
 			SELECT DISTINCT q FROM Question q
-			JOIN FETCH q.answers
+			JOIN FETCH q.answers a
 			""")
 	List<Question> findAllWithDetails();
 }
