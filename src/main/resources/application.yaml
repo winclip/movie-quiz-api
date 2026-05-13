@@ -1,3 +1,9 @@
 spring:
-  application:
-    name: movie-quiz
+  datasource:
+    url: jdbc:postgresql://localhost:5432/movie_quiz
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true

@@ -1,0 +1,113 @@
+package dev.winclip.movie_quiz.service;
+
+import dev.winclip.movie_quiz.api.dto.CreateAnswerOptionRequest;
+import dev.winclip.movie_quiz.api.dto.CreateQuestionRequest;
+import dev.winclip.movie_quiz.entity.Answer;
+import dev.winclip.movie_quiz.entity.AnswerTranslation;
+import dev.winclip.movie_quiz.entity.Question;
+import dev.winclip.movie_quiz.entity.QuestionTranslation;
+import dev.winclip.movie_quiz.i18n.SupportedLocales;
+import dev.winclip.movie_quiz.repository.QuestionRepository;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class QuestionService {
+
+	private final QuestionRepository questionRepository;
+
+	public QuestionService(QuestionRepository questionRepository) {
+		this.questionRepository = questionRepository;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Question> findPageWithDetails(int page, int size) {
+		var pageable = PageRequest.of(page, size);
+		var ids = questionRepository.findPageIds(pageable);
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		var questions = questionRepository.findByIdInWithDetails(ids);
+		questions.sort(Comparator.comparing(Question::getId));
+		return questions;
+	}
+
+	@Transactional(readOnly = true)
+	public long countQuestions() {
+		return questionRepository.count();
+	}
+
+	@Transactional
+	public Question create(CreateQuestionRequest request) {
+		var question = new Question();
+		fillQuestion(question, request);
+		return questionRepository.save(question);
+	}
+
+	@Transactional
+	public void update(Long id, CreateQuestionRequest request) {
+		var question = questionRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found: " + id));
+		fillQuestion(question, request);
+		questionRepository.save(question);
+	}
+
+	@Transactional
+	public void deleteById(Long id) {
+		if (!questionRepository.existsById(id)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found: " + id);
+		}
+		questionRepository.deleteById(id);
+	}
+
+	private void fillQuestion(Question question, CreateQuestionRequest request) {
+		question.setQuestionText(primaryText(request.texts()));
+		question.setImageUrl(StringUtils.hasText(request.imageUrl()) ? request.imageUrl() : null);
+
+		question.getQuestionTranslations().clear();
+		for (String locale : SupportedLocales.ALL) {
+			var tr = new QuestionTranslation();
+			tr.setQuestion(question);
+			tr.setLocale(locale);
+			tr.setTranslationText(request.texts().get(locale).trim());
+			question.getQuestionTranslations().add(tr);
+		}
+
+		question.getAnswers().clear();
+		for (CreateAnswerOptionRequest opt : request.options()) {
+			var answer = new Answer();
+			answer.setQuestion(question);
+			answer.setAnswerText(primaryText(opt.texts()));
+			answer.setCorrect(opt.correct());
+			for (String locale : SupportedLocales.ALL) {
+				var tr = new AnswerTranslation();
+				tr.setAnswer(answer);
+				tr.setLocale(locale);
+				tr.setTranslationText(opt.texts().get(locale).trim());
+				answer.getAnswerTranslations().add(tr);
+			}
+			question.getAnswers().add(answer);
+		}
+	}
+
+	private static String primaryText(Map<String, String> texts) {
+		String en = texts.get("en");
+		if (StringUtils.hasText(en)) {
+			return en.trim();
+		}
+		for (String locale : SupportedLocales.ALL) {
+			String t = texts.get(locale);
+			if (StringUtils.hasText(t)) {
+				return t.trim();
+			}
+		}
+		throw new IllegalStateException("No primary text");
+	}
+}
