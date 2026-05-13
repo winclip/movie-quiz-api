@@ -1,9 +1,44 @@
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}
+---
+# local
+spring:
+  config:
+    activate:
+      on-profile: default
   datasource:
     url: jdbc:postgresql://localhost:5432/movie_quiz
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+  flyway:
+    repair-on-migrate: true
+    validate-on-migrate: false
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: true
+
+server:
+  port: 8080
+
+---
+# prod
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=${PGSSLMODE:require}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
+  flyway:
+    repair-on-migrate: false
+    validate-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+server:
+  port: ${PORT:8080}
