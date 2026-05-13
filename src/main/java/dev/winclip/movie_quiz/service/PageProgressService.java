@@ -1,5 +1,7 @@
 package dev.winclip.movie_quiz.service;
 
+import dev.winclip.movie_quiz.api.dto.PageProgressItem;
+import dev.winclip.movie_quiz.api.dto.ProgressResponse;
 import dev.winclip.movie_quiz.api.dto.SubmitAnswerRequest;
 import dev.winclip.movie_quiz.api.dto.SubmitPageRequest;
 import dev.winclip.movie_quiz.api.dto.SubmitPageResponse;
@@ -72,6 +74,25 @@ public class PageProgressService {
 				});
 
 		return new SubmitPageResponse(page, stars, correctCount, totalCount, bestStars);
+	}
+
+	@Transactional(readOnly = true)
+	public ProgressResponse getProgress(UUID clientId) {
+		long totalItems = questionService.countQuestions();
+		int totalPages = totalItems == 0
+				? 0
+				: (int) ((totalItems + QuizConstants.PAGE_SIZE - 1) / QuizConstants.PAGE_SIZE);
+
+		var pages = pageResultRepository.findByClient_IdOrderByPageAsc(clientId).stream()
+				.map(r -> new PageProgressItem(
+						r.getPage(),
+						r.getStars(),
+						r.getCorrectCount(),
+						r.getTotalCount(),
+						r.getCompletedAt()))
+				.toList();
+
+		return new ProgressResponse(totalPages, QuizConstants.PAGE_SIZE, pages);
 	}
 
 	private static void validateAnswers(List<Question> questions, List<SubmitAnswerRequest> answers) {
