@@ -1,7 +1,8 @@
 package dev.winclip.movie_quiz.entity;
 
 import dev.winclip.movie_quiz.quiz.WalletConstants;
-import jakarta.persistence.Column;import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -32,4 +33,5 @@ public class Client {
 		this.id = id;
 		this.crystals = WalletConstants.MAX_CRYSTALS;
 		this.createdAt = Instant.now();
-	}}
+	}
+}
