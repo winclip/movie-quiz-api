@@ -1,7 +1,7 @@
 package dev.winclip.movie_quiz.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import dev.winclip.movie_quiz.quiz.WalletConstants;
+import jakarta.persistence.Column;import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -21,8 +21,7 @@ public class Client {
 	private UUID id;
 
 	@Column(nullable = false)
-	private short crystals = 3;
-
+	private short crystals = WalletConstants.MAX_CRYSTALS;
 	@Column(name = "next_crystal_at")
 	private Instant nextCrystalAt;
 
@@ -31,7 +30,6 @@ public class Client {
 
 	public Client(UUID id) {
 		this.id = id;
-		this.crystals = 3;
+		this.crystals = WalletConstants.MAX_CRYSTALS;
 		this.createdAt = Instant.now();
-	}
-}
+	}}
