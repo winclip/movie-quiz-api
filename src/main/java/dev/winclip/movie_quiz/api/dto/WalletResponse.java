@@ -7,5 +7,6 @@ public record WalletResponse(
 		int maxCrystals,
 		long regenSeconds,
 		Instant nextCrystalAt,
-		Instant serverTime) {
+		Instant serverTime,
+		int granted) {
 }

@@ -34,7 +34,28 @@ public class WalletService {
 		Instant now = Instant.now();
 		applyRegeneration(client, now);
 		clientRepository.save(client);
-		return toResponse(client, now);
+		return toResponse(client, now, 0);
+	}
+
+	@Transactional
+	public WalletResponse rewardCrystal(UUID clientId, int amount) {
+		Client client = clientService.getOrCreate(clientId);
+		Instant now = Instant.now();
+		applyRegeneration(client, now);
+
+		if (amount == 2 && client.getCrystals() > 1) {
+			throw new ResponseStatusException(
+					HttpStatus.CONFLICT, "Double reward is only available with 0 or 1 crystals");
+		}
+
+		int granted = Math.min(amount, WalletConstants.MAX_CRYSTALS - client.getCrystals());
+		if (granted <= 0) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Wallet is full");
+		}
+
+		client.setCrystals((short) (client.getCrystals() + granted));
+		clientRepository.save(client);
+		return toResponse(client, now, granted);
 	}
 
 	@Transactional
@@ -53,7 +74,7 @@ public class WalletService {
 		}
 
 		clientRepository.save(client);
-		return toResponse(client, now);
+		return toResponse(client, now, 0);
 	}
 
 	private void applyRegeneration(Client client, Instant now) {
@@ -69,13 +90,14 @@ public class WalletService {
 		}
 	}
 
-	private WalletResponse toResponse(Client client, Instant serverTime) {
+	private WalletResponse toResponse(Client client, Instant serverTime, int granted) {
 		return new WalletResponse(
 				client.getCrystals(),
 				WalletConstants.MAX_CRYSTALS,
 				walletProperties.regenSeconds(),
 				client.getNextCrystalAt(),
-				serverTime);
+				serverTime,
+				granted);
 	}
 
 }
