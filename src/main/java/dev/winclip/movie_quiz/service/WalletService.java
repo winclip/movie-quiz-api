@@ -54,6 +54,11 @@ public class WalletService {
 		}
 
 		client.setCrystals((short) (client.getCrystals() + granted));
+		if (client.getCrystals() >= WalletConstants.MAX_CRYSTALS) {
+			client.setNextCrystalAt(null);
+		} else if (granted > 0) {
+			client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
+		}
 		clientRepository.save(client);
 		return toResponse(client, now, granted);
 	}
@@ -68,9 +73,13 @@ public class WalletService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "No crystals available");
 		}
 
-		client.setCrystals((short) (client.getCrystals() - 1));
-		if (client.getCrystals() < WalletConstants.MAX_CRYSTALS && client.getNextCrystalAt() == null) {
-			client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
+		short crystalsBefore = client.getCrystals();
+		client.setCrystals((short) (crystalsBefore - 1));
+		if (client.getCrystals() < WalletConstants.MAX_CRYSTALS) {
+			if (crystalsBefore == WalletConstants.MAX_CRYSTALS
+					|| client.getNextCrystalAt() == null) {
+				client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
+			}
 		}
 
 		clientRepository.save(client);
