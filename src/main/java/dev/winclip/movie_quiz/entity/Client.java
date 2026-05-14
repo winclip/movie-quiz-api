@@ -20,11 +20,18 @@ public class Client {
 	@Id
 	private UUID id;
 
+	@Column(nullable = false)
+	private short crystals = 3;
+
+	@Column(name = "next_crystal_at")
+	private Instant nextCrystalAt;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
 	public Client(UUID id) {
 		this.id = id;
+		this.crystals = 3;
 		this.createdAt = Instant.now();
 	}
 }
