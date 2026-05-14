@@ -1,8 +1,12 @@
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:default}
+
+wallet:
+  regen-seconds: ${CRYSTAL_REGEN_SECONDS:1200}
+
 ---
-# local
+
 spring:
   config:
     activate:
@@ -23,7 +27,7 @@ server:
   port: 8080
 
 ---
-# prod
+
 spring:
   config:
     activate:
