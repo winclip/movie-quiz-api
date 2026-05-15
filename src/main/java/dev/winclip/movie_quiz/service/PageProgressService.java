@@ -76,6 +76,11 @@ public class PageProgressService {
 		return new SubmitPageResponse(page, stars, correctCount, totalCount, bestStars);
 	}
 
+	@Transactional
+	public long resetProgress(UUID clientId) {
+		return pageResultRepository.deleteByClient_Id(clientId);
+	}
+
 	@Transactional(readOnly = true)
 	public ProgressResponse getProgress(UUID clientId) {
 		long totalItems = questionService.countQuestions();
