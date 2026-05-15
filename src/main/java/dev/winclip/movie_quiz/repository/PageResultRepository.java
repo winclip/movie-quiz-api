@@ -11,4 +11,6 @@ public interface PageResultRepository extends JpaRepository<PageResult, Long> {
 	List<PageResult> findByClient_IdOrderByPageAsc(UUID clientId);
 
 	Optional<PageResult> findByClient_IdAndPage(UUID clientId, int page);
+
+	long deleteByClient_Id(UUID clientId);
 }
