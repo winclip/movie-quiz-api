@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 public record CreateQuestionRequest(
 		@NotEmpty Map<String, String> texts,
 		String imageUrl,
+		String revealedImageUrl,
 		@NotEmpty @Size(min = 2, max = 20) @Valid List<CreateAnswerOptionRequest> options) {
 
 	@AssertTrue(message = "Question texts must include non-blank en, de, fr, pt, es")
@@ -43,6 +44,14 @@ public record CreateQuestionRequest(
 			}
 		}
 		return true;
+	}
+
+	@AssertTrue(message = "revealedImageUrl requires imageUrl")
+	public boolean revealedImageRequiresBaseImage() {
+		if (!StringUtils.hasText(revealedImageUrl)) {
+			return true;
+		}
+		return StringUtils.hasText(imageUrl);
 	}
 
 	@AssertTrue(message = "Exactly one option must be marked correct")

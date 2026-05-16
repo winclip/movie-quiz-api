@@ -29,6 +29,7 @@ public class QuestionDtoMapper {
 				question.getId(),
 				resolveQuestionText(question, locale),
 				question.getImageUrl(),
+				question.getRevealedImageUrl(),
 				options);
 	}
 
