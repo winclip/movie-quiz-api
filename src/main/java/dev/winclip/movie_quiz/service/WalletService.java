@@ -43,9 +43,9 @@ public class WalletService {
 		Instant now = Instant.now();
 		applyRegeneration(client, now);
 
-		if (amount == 2 && client.getCrystals() > 1) {
+		if (amount == 2 && client.getCrystals() > WalletConstants.MAX_CRYSTALS - 2) {
 			throw new ResponseStatusException(
-					HttpStatus.CONFLICT, "Double reward is only available with 0 or 1 crystals");
+					HttpStatus.CONFLICT, "Double reward does not fit in wallet");
 		}
 
 		int granted = Math.min(amount, WalletConstants.MAX_CRYSTALS - client.getCrystals());
@@ -54,10 +54,11 @@ public class WalletService {
 		}
 
 		client.setCrystals((short) (client.getCrystals() + granted));
-		if (client.getCrystals() >= WalletConstants.MAX_CRYSTALS) {
+		if (client.getCrystals() >= WalletConstants.MAX_CRYSTALS
+				|| client.getCrystals() >= WalletConstants.REGEN_CAP) {
 			client.setNextCrystalAt(null);
 		} else if (granted > 0) {
-			client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
+			scheduleRegenAfterReward(client, now);
 		}
 		clientRepository.save(client);
 		return toResponse(client, now, granted);
@@ -75,23 +76,32 @@ public class WalletService {
 
 		short crystalsBefore = client.getCrystals();
 		client.setCrystals((short) (crystalsBefore - 1));
-		if (client.getCrystals() < WalletConstants.MAX_CRYSTALS) {
-			if (crystalsBefore == WalletConstants.MAX_CRYSTALS
+		if (client.getCrystals() < WalletConstants.REGEN_CAP) {
+			if (crystalsBefore == WalletConstants.REGEN_CAP
 					|| client.getNextCrystalAt() == null) {
 				client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
 			}
+		} else {
+			client.setNextCrystalAt(null);
 		}
 
 		clientRepository.save(client);
 		return toResponse(client, now, 0);
 	}
 
+	private void scheduleRegenAfterReward(Client client, Instant now) {
+		Instant nextAt = client.getNextCrystalAt();
+		if (nextAt == null || !now.isBefore(nextAt)) {
+			client.setNextCrystalAt(now.plus(walletProperties.regenDuration()));
+		}
+	}
+
 	private void applyRegeneration(Client client, Instant now) {
-		while (client.getCrystals() < WalletConstants.MAX_CRYSTALS
+		while (client.getCrystals() < WalletConstants.REGEN_CAP
 				&& client.getNextCrystalAt() != null
 				&& !now.isBefore(client.getNextCrystalAt())) {
 			client.setCrystals((short) (client.getCrystals() + 1));
-			if (client.getCrystals() >= WalletConstants.MAX_CRYSTALS) {
+			if (client.getCrystals() >= WalletConstants.REGEN_CAP) {
 				client.setNextCrystalAt(null);
 			} else {
 				client.setNextCrystalAt(client.getNextCrystalAt().plus(walletProperties.regenDuration()));
@@ -102,6 +112,7 @@ public class WalletService {
 	private WalletResponse toResponse(Client client, Instant serverTime, int granted) {
 		return new WalletResponse(
 				client.getCrystals(),
+				WalletConstants.REGEN_CAP,
 				WalletConstants.MAX_CRYSTALS,
 				walletProperties.regenSeconds(),
 				client.getNextCrystalAt(),

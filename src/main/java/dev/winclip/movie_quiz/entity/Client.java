@@ -22,7 +22,7 @@ public class Client {
 	private UUID id;
 
 	@Column(nullable = false)
-	private short crystals = WalletConstants.MAX_CRYSTALS;
+	private short crystals = WalletConstants.REGEN_CAP;
 	@Column(name = "next_crystal_at")
 	private Instant nextCrystalAt;
 
@@ -31,7 +31,7 @@ public class Client {
 
 	public Client(UUID id) {
 		this.id = id;
-		this.crystals = WalletConstants.MAX_CRYSTALS;
+		this.crystals = WalletConstants.REGEN_CAP;
 		this.createdAt = Instant.now();
 	}
 }
