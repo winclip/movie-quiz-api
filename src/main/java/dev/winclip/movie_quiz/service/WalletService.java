@@ -102,6 +102,7 @@ public class WalletService {
 	private WalletResponse toResponse(Client client, Instant serverTime, int granted) {
 		return new WalletResponse(
 				client.getCrystals(),
+				WalletConstants.REGEN_CAP,
 				WalletConstants.MAX_CRYSTALS,
 				walletProperties.regenSeconds(),
 				client.getNextCrystalAt(),
