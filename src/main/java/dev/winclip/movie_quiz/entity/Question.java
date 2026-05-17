@@ -33,6 +33,9 @@ public class Question {
 	@Column(name = "image_url", columnDefinition = "TEXT")
 	private String imageUrl;
 
+	@Column(name = "revealed_image_url", columnDefinition = "TEXT")
+	private String revealedImageUrl;
+
 	@OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Answer> answers = new ArrayList<>();
 

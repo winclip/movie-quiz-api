@@ -69,7 +69,8 @@ public class QuestionService {
 
 	private void fillQuestion(Question question, CreateQuestionRequest request) {
 		question.setQuestionText(primaryText(request.texts()));
-		question.setImageUrl(StringUtils.hasText(request.imageUrl()) ? request.imageUrl() : null);
+		question.setImageUrl(normalizeImageUrl(request.imageUrl()));
+		question.setRevealedImageUrl(normalizeImageUrl(request.revealedImageUrl()));
 
 		question.getQuestionTranslations().clear();
 		for (String locale : SupportedLocales.ALL) {
@@ -95,6 +96,10 @@ public class QuestionService {
 			}
 			question.getAnswers().add(answer);
 		}
+	}
+
+	private static String normalizeImageUrl(String url) {
+		return StringUtils.hasText(url) ? url.trim() : null;
 	}
 
 	private static String primaryText(Map<String, String> texts) {
