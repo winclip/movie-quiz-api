@@ -21,6 +21,9 @@ public class Client {
 	@Id
 	private UUID id;
 
+	@Column(nullable = false, length = 32, unique = true)
+	private String nickname;
+
 	@Column(nullable = false)
 	private short crystals = WalletConstants.REGEN_CAP;
 	@Column(name = "next_crystal_at")
